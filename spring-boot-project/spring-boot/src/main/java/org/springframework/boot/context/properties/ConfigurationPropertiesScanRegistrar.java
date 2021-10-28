@@ -57,23 +57,22 @@ class ConfigurationPropertiesScanRegistrar implements ImportBeanDefinitionRegist
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-		Set<String> packagesToScan = getPackagesToScan(importingClassMetadata);
-		scan(registry, packagesToScan);
+		Set<String> packagesToScan = getPackagesToScan(importingClassMetadata); // 获取扫描的包
+		scan(registry, packagesToScan); // 扫描出包中所有带有@ConfigurationProperties注解的类，注册到Spring容器中
 	}
 
 	private Set<String> getPackagesToScan(AnnotationMetadata metadata) {
-		AnnotationAttributes attributes = AnnotationAttributes
-				.fromMap(metadata.getAnnotationAttributes(ConfigurationPropertiesScan.class.getName()));
+		AnnotationAttributes attributes = AnnotationAttributes.fromMap(metadata.getAnnotationAttributes(ConfigurationPropertiesScan.class.getName()));
 		String[] basePackages = attributes.getStringArray("basePackages");
 		Class<?>[] basePackageClasses = attributes.getClassArray("basePackageClasses");
 		Set<String> packagesToScan = new LinkedHashSet<>(Arrays.asList(basePackages));
 		for (Class<?> basePackageClass : basePackageClasses) {
 			packagesToScan.add(ClassUtils.getPackageName(basePackageClass));
 		}
-		if (packagesToScan.isEmpty()) {
+		if (packagesToScan.isEmpty()) { // 若未指定则以当前注解所在类所在的包作为扫描包
 			packagesToScan.add(ClassUtils.getPackageName(metadata.getClassName()));
 		}
-		packagesToScan.removeIf((candidate) -> !StringUtils.hasText(candidate));
+		packagesToScan.removeIf((candidate) -> !StringUtils.hasText(candidate)); // 过滤到位空的数据
 		return packagesToScan;
 	}
 
@@ -91,7 +90,7 @@ class ConfigurationPropertiesScanRegistrar implements ImportBeanDefinitionRegist
 		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
 		scanner.setEnvironment(this.environment);
 		scanner.setResourceLoader(this.resourceLoader);
-		scanner.addIncludeFilter(new AnnotationTypeFilter(ConfigurationProperties.class));
+		scanner.addIncludeFilter(new AnnotationTypeFilter(ConfigurationProperties.class)); // 添加过滤器，过滤出带有@ConfigurationProperties注解的类
 		TypeExcludeFilter typeExcludeFilter = new TypeExcludeFilter();
 		typeExcludeFilter.setBeanFactory((BeanFactory) registry);
 		scanner.addExcludeFilter(typeExcludeFilter);
@@ -101,14 +100,13 @@ class ConfigurationPropertiesScanRegistrar implements ImportBeanDefinitionRegist
 	private void register(ConfigurationPropertiesBeanRegistrar registrar, String className) throws LinkageError {
 		try {
 			register(registrar, ClassUtils.forName(className, null));
-		}
-		catch (ClassNotFoundException ex) {
+		} catch (ClassNotFoundException ex) {
 			// Ignore
 		}
 	}
 
 	private void register(ConfigurationPropertiesBeanRegistrar registrar, Class<?> type) {
-		if (!isComponent(type)) {
+		if (!isComponent(type)) { // 该类没有被@Component注解修饰
 			registrar.register(type);
 		}
 	}

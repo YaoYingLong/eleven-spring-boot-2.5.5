@@ -55,9 +55,9 @@ final class ConfigurationPropertiesBeanRegistrar {
 	}
 
 	void register(Class<?> type, MergedAnnotation<ConfigurationProperties> annotation) {
-		String name = getName(type, annotation);
-		if (!containsBeanDefinition(name)) {
-			registerBeanDefinition(name, type, annotation);
+		String name = getName(type, annotation); // 特殊化Bean的名称
+		if (!containsBeanDefinition(name)) { // 判断该Bean是否注册到容器中
+			registerBeanDefinition(name, type, annotation); // 注册BeanDefinition到容器中
 		}
 	}
 
@@ -89,7 +89,7 @@ final class ConfigurationPropertiesBeanRegistrar {
 	}
 
 	private BeanDefinition createBeanDefinition(String beanName, Class<?> type) {
-		if (BindMethod.forType(type) == BindMethod.VALUE_OBJECT) {
+		if (BindMethod.forType(type) == BindMethod.VALUE_OBJECT) { // 根据该类是否有构造函数，且构造函数上是否有ConstructorBinding注解
 			return new ConfigurationPropertiesValueObjectBeanDefinition(this.beanFactory, beanName, type);
 		}
 		GenericBeanDefinition definition = new GenericBeanDefinition();

@@ -325,8 +325,8 @@ public class SpringApplication {
 		DefaultBootstrapContext bootstrapContext = createBootstrapContext();
 		ConfigurableApplicationContext context = null;
 		configureHeadlessProperty();
-		SpringApplicationRunListeners listeners = getRunListeners(args);
-		listeners.starting(bootstrapContext, this.mainApplicationClass);
+		SpringApplicationRunListeners listeners = getRunListeners(args); // 创建SpringApplicationRunListener监听器列表
+		listeners.starting(bootstrapContext, this.mainApplicationClass); // 通过EventPublishingRunListener发布ApplicationStartingEvent事件
 		try {
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args); // 解析命令行传入参数
 			ConfigurableEnvironment environment = prepareEnvironment(listeners, bootstrapContext, applicationArguments);
@@ -367,11 +367,11 @@ public class SpringApplication {
 
 	private ConfigurableEnvironment prepareEnvironment(SpringApplicationRunListeners listeners, DefaultBootstrapContext bootstrapContext, ApplicationArguments applicationArguments) {
 		// Create and configure the environment
-		ConfigurableEnvironment environment = getOrCreateEnvironment();
-		configureEnvironment(environment, applicationArguments.getSourceArgs());
+		ConfigurableEnvironment environment = getOrCreateEnvironment(); // 获取或创建ConfigurableEnvironment，会调用超类AbstractEnvironment的无参构造方法
+		configureEnvironment(environment, applicationArguments.getSourceArgs()); // 加载默认配置
 		ConfigurationPropertySources.attach(environment);
-		listeners.environmentPrepared(bootstrapContext, environment);
-		DefaultPropertiesPropertySource.moveToEnd(environment);
+		listeners.environmentPrepared(bootstrapContext, environment); // 发布环境准备就绪事件ApplicationEnvironmentPreparedEvent，从而加载项目中的配置文件
+		DefaultPropertiesPropertySource.moveToEnd(environment); // 将defaultProperties移到列表最后，即将其优先级降到最低
 		Assert.state(!environment.containsProperty("spring.main.environment-prefix"), "Environment prefix cannot be set via properties.");
 		bindToSpringApplication(environment);
 		if (!this.isCustomEnvironment) {
@@ -433,6 +433,7 @@ public class SpringApplication {
 				System.getProperty(SYSTEM_PROPERTY_JAVA_AWT_HEADLESS, Boolean.toString(this.headless)));
 	}
 
+	// 从spring.factories加载键值为org.springframework.boot.SpringApplicationRunListener的类，这里加载的EventPublishingRunListener
 	private SpringApplicationRunListeners getRunListeners(String[] args) {
 		Class<?>[] types = new Class<?>[] { SpringApplication.class, String[].class };
 		return new SpringApplicationRunListeners(logger,
@@ -522,8 +523,7 @@ public class SpringApplication {
 			if (sources.contains(name)) {
 				PropertySource<?> source = sources.get(name);
 				CompositePropertySource composite = new CompositePropertySource(name);
-				composite.addPropertySource(
-						new SimpleCommandLinePropertySource("springApplicationCommandLineArgs", args));
+				composite.addPropertySource(new SimpleCommandLinePropertySource("springApplicationCommandLineArgs", args));
 				composite.addPropertySource(source);
 				sources.replace(name, composite);
 			}
